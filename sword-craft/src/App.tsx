@@ -18,7 +18,6 @@ function App() {
         const parsed = JSON.parse(saved);
         setDiscoveredItems(parsed);
       } catch (e) {
-        // 파싱 실패 시 기본 아이템으로 시작
         setDiscoveredItems([...BASE_ITEMS]);
       }
     } else {
@@ -53,9 +52,6 @@ function App() {
       result.discovered = true;
       setDiscoveredItems(prev => [...prev, result]);
       setNewItem(result);
-    } else {
-      // 이미 발견한 아이템 - 간단한 알림만
-      // 모달 안 띄워도 됨
     }
   };
 
@@ -69,14 +65,14 @@ function App() {
   };
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      {/* 왼쪽: 캔버스 (70%) */}
-      <div className="flex-1 h-full">
+    <div className="h-screen w-screen flex overflow-hidden bg-slate-900">
+      {/* 왼쪽: 캔버스 - flex-1로 남은 공간 전체 사용 */}
+      <div className="flex-1 min-w-0">
         <Canvas onNewItem={handleNewItem} />
       </div>
 
-      {/* 오른쪽: 사이드바 (30%) */}
-      <div className="w-96 h-full">
+      {/* 오른쪽: 사이드바 - 고정 너비 */}
+      <div className="w-80 flex-shrink-0">
         <Sidebar
           discoveredItems={discoveredItems}
           craftCount={craftCount}
