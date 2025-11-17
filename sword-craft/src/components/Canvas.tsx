@@ -17,9 +17,12 @@ interface CanvasProps {
 const Canvas: React.FC<CanvasProps> = ({ onNewItem }) => {
   const [placedItems, setPlacedItems] = useState<PlacedItemData[]>([]);
   const [draggedItem, setDraggedItem] = useState<PlacedItemData | null>(null);
+  const [isCanvasDragOver, setIsCanvasDragOver] = useState(false);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    setIsCanvasDragOver(false);
 
     const itemData = e.dataTransfer.getData('item');
     if (!itemData) return;
@@ -27,7 +30,7 @@ const Canvas: React.FC<CanvasProps> = ({ onNewItem }) => {
     try {
       const item: Item = JSON.parse(itemData);
       const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left - 40; // 중심으로 조정
+      const x = e.clientX - rect.left - 40;
       const y = e.clientY - rect.top - 40;
 
       const newPlacedItem: PlacedItemData = {
@@ -45,7 +48,14 @@ const Canvas: React.FC<CanvasProps> = ({ onNewItem }) => {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'copy';
+    setIsCanvasDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsCanvasDragOver(false);
   };
 
   const handleItemDragStart = (placedItem: PlacedItemData) => {
@@ -61,7 +71,7 @@ const Canvas: React.FC<CanvasProps> = ({ onNewItem }) => {
     // 두 아이템 조합
     const result = combineItems(draggedItem.item, targetItem.item);
     if (result) {
-      // 새 아이템을 캔버스에 추가 (두 아이템 사이 위치)
+      // 새 아이템 위치 (두 아이템 중간)
       const newX = (draggedItem.x + targetItem.x) / 2;
       const newY = (draggedItem.y + targetItem.y) / 2;
 
@@ -72,11 +82,22 @@ const Canvas: React.FC<CanvasProps> = ({ onNewItem }) => {
         id: `placed-${Date.now()}-${Math.random()}`,
       };
 
-      setPlacedItems(prev => [...prev, newPlacedItem]);
+      // ⭐ 중요: 원본 두 아이템 제거하고 새 아이템만 추가
+      setPlacedItems(prev =>
+        prev
+          .filter(item => item.id !== draggedItem.id && item.id !== targetItem.id)
+          .concat(newPlacedItem)
+      );
+
       onNewItem(result);
     }
 
     setDraggedItem(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setIsCanvasDragOver(false);
   };
 
   const handleRemoveItem = (id: string) => {
@@ -90,53 +111,59 @@ const Canvas: React.FC<CanvasProps> = ({ onNewItem }) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      {/* 상단 툴바 */}
-      <div className="bg-slate-800/50 backdrop-blur-sm border-b-2 border-purple-500/30 p-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-black bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-            🎨 조합 캔버스
-          </h2>
-          <p className="text-sm text-slate-400">아이템을 드래그해서 놓고, 서로 겹쳐서 조합하세요!</p>
+    <div className="h-full flex flex-col bg-slate-900">
+      {/* 상단 툴바 - 간소화 */}
+      <div className="bg-slate-800/80 backdrop-blur-sm border-b border-slate-700 px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-bold text-slate-200">🎨 조합 캔버스</h2>
+          <span className="text-sm text-slate-400">
+            아이템 {placedItems.length}개
+          </span>
         </div>
-        <div className="flex gap-3">
-          <div className="bg-slate-900/50 px-4 py-2 rounded-lg border-2 border-slate-700">
-            <span className="text-sm text-slate-400">캔버스 아이템: </span>
-            <span className="text-lg font-black text-purple-300">{placedItems.length}</span>
-          </div>
-          <button
-            onClick={handleClearAll}
-            className="px-4 py-2 bg-red-900/50 hover:bg-red-800/50 border-2 border-red-500/30 rounded-lg font-bold transition-all duration-300"
-          >
-            🗑️ 전체 삭제
-          </button>
-        </div>
+        <button
+          onClick={handleClearAll}
+          disabled={placedItems.length === 0}
+          className="px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 rounded-lg font-bold transition-all"
+        >
+          🗑️ 전체 삭제
+        </button>
       </div>
 
       {/* 캔버스 영역 */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        className="flex-1 relative bg-gradient-to-br from-slate-900/50 to-slate-800/50 overflow-hidden"
+        onDragLeave={handleDragLeave}
+        className={`flex-1 relative transition-all ${
+          isCanvasDragOver ? 'bg-purple-900/20' : 'bg-slate-900'
+        }`}
         style={{
-          backgroundImage: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 1px, transparent 1px)',
-          backgroundSize: '30px 30px',
+          backgroundImage: 'radial-gradient(circle, rgba(100, 100, 120, 0.15) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
         }}
       >
+        {/* 안내 메시지 */}
         {placedItems.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center text-slate-600">
-              <div className="text-6xl mb-4 animate-bounce-slow">👈</div>
-              <p className="text-xl font-bold">오른쪽 사이드바에서<br />아이템을 드래그해서<br />여기에 놓아보세요!</p>
+            <div className="text-center">
+              <div className="text-7xl mb-4 opacity-30">👉</div>
+              <p className="text-slate-500 text-lg">
+                오른쪽에서 아이템을 드래그하세요
+              </p>
+              <p className="text-slate-600 text-sm mt-2">
+                아이템끼리 겹치면 조합됩니다!
+              </p>
             </div>
           </div>
         )}
 
+        {/* 배치된 아이템들 */}
         {placedItems.map(placedItem => (
           <PlacedItem
             key={placedItem.id}
             placedItem={placedItem}
             onDragStart={handleItemDragStart}
+            onDragEnd={handleDragEnd}
             onDrop={handleItemDrop}
             onRemove={handleRemoveItem}
             isDragging={draggedItem?.id === placedItem.id}

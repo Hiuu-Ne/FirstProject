@@ -16,12 +16,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   onReset,
 }) => {
   const [filter, setFilter] = useState<'all' | 'material' | 'sword'>('all');
-  const [rarityFilter, setRarityFilter] = useState<string>('all');
-  const [showInfo, setShowInfo] = useState(false);
 
   const filteredItems = discoveredItems.filter(item => {
     if (filter !== 'all' && item.type !== filter) return false;
-    if (rarityFilter !== 'all' && item.rarity !== rarityFilter) return false;
     return true;
   });
 
@@ -29,128 +26,100 @@ const Sidebar: React.FC<SidebarProps> = ({
   const discoveryRate = Math.round((discoveredItems.length / totalItems) * 100);
 
   return (
-    <div className="h-full flex flex-col bg-slate-900/50 border-l-2 border-purple-500/30">
+    <div className="h-full flex flex-col bg-slate-900 border-l border-slate-700">
       {/* 헤더 */}
-      <div className="p-6 border-b-2 border-purple-500/30">
-        <h1 className="text-3xl font-black mb-2 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+      <div className="px-4 py-4 border-b border-slate-700">
+        <h1 className="text-xl font-black text-slate-100 mb-1">
           🗡️ 칼 조합 연금술
         </h1>
-        <p className="text-sm text-slate-400">재료를 조합해서 전설의 검을 만드세요!</p>
+        <p className="text-xs text-slate-500">재료를 조합해서 전설의 검을 만드세요</p>
       </div>
 
-      {/* 통계 */}
-      <div className="p-4 space-y-3 border-b-2 border-purple-500/30">
-        <div className="bg-slate-800/50 rounded-lg px-4 py-2 border-2 border-purple-500/30">
-          <div className="text-xs text-slate-400">발견한 아이템</div>
-          <div className="text-xl font-black text-purple-300">
-            {discoveredItems.length} / {totalItems}
-          </div>
+      {/* 통계 - 컴팩트하게 */}
+      <div className="px-4 py-3 border-b border-slate-700 space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-slate-400">발견</span>
+          <span className="font-bold text-purple-400">
+            {discoveredItems.length} / {totalItems} ({discoveryRate}%)
+          </span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-slate-800/50 rounded-lg px-3 py-2 border-2 border-yellow-500/30">
-            <div className="text-xs text-slate-400">검</div>
-            <div className="text-lg font-black text-yellow-300">⚔️ {swordCount}</div>
-          </div>
-          <div className="bg-slate-800/50 rounded-lg px-3 py-2 border-2 border-blue-500/30">
-            <div className="text-xs text-slate-400">조합 횟수</div>
-            <div className="text-lg font-black text-blue-300">🔨 {craftCount}</div>
-          </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-slate-400">검</span>
+          <span className="font-bold text-yellow-400">⚔️ {swordCount}</span>
         </div>
-        <div className="bg-slate-800/50 rounded-lg px-4 py-2 border-2 border-green-500/30">
-          <div className="text-xs text-slate-400">발견율</div>
-          <div className="text-xl font-black text-green-300">📊 {discoveryRate}%</div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-slate-400">조합</span>
+          <span className="font-bold text-blue-400">🔨 {craftCount}</span>
         </div>
       </div>
 
-      {/* 버튼 */}
-      <div className="p-4 flex gap-2 border-b-2 border-purple-500/30">
-        <button
-          onClick={() => setShowInfo(!showInfo)}
-          className="flex-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold text-sm transition-all duration-300"
-        >
-          {showInfo ? '❌' : '❓'}
-        </button>
+      {/* 초기화 버튼 */}
+      <div className="px-4 py-2 border-b border-slate-700">
         <button
           onClick={onReset}
-          className="flex-1 px-3 py-2 bg-red-900/50 hover:bg-red-800/50 border-2 border-red-500/30 rounded-lg font-bold text-sm transition-all duration-300"
+          className="w-full px-3 py-2 text-xs bg-red-900/30 hover:bg-red-900/50 border border-red-700/50 rounded-lg font-bold transition-all"
         >
           🔄 초기화
         </button>
       </div>
 
-      {/* 도움말 */}
-      {showInfo && (
-        <div className="p-4 bg-slate-800/70 border-b-2 border-blue-500/30 text-xs">
-          <h3 className="font-black mb-2 text-blue-300">📖 사용법</h3>
-          <ul className="space-y-1 text-slate-300">
-            <li>✅ 아이템을 왼쪽으로 드래그</li>
-            <li>✅ 아이템끼리 겹쳐서 조합</li>
-            <li>✅ 더블클릭으로 제거</li>
-          </ul>
-        </div>
-      )}
-
       {/* 필터 */}
-      <div className="p-4 space-y-2 border-b-2 border-purple-500/30">
+      <div className="px-4 py-3 border-b border-slate-700">
         <div className="flex gap-2">
           <button
             onClick={() => setFilter('all')}
-            className={`flex-1 px-2 py-1 rounded text-xs font-bold transition-all ${
-              filter === 'all' ? 'bg-purple-600' : 'bg-slate-700 hover:bg-slate-600'
+            className={`flex-1 px-2 py-1.5 rounded text-xs font-bold transition-all ${
+              filter === 'all'
+                ? 'bg-purple-600 text-white'
+                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
             }`}
           >
-            전체
+            전체 {discoveredItems.length}
           </button>
           <button
             onClick={() => setFilter('material')}
-            className={`flex-1 px-2 py-1 rounded text-xs font-bold transition-all ${
-              filter === 'material' ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'
+            className={`flex-1 px-2 py-1.5 rounded text-xs font-bold transition-all ${
+              filter === 'material'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
             }`}
           >
-            재료
+            재료 {discoveredItems.filter(i => i.type === 'material').length}
           </button>
           <button
             onClick={() => setFilter('sword')}
-            className={`flex-1 px-2 py-1 rounded text-xs font-bold transition-all ${
-              filter === 'sword' ? 'bg-yellow-600' : 'bg-slate-700 hover:bg-slate-600'
+            className={`flex-1 px-2 py-1.5 rounded text-xs font-bold transition-all ${
+              filter === 'sword'
+                ? 'bg-yellow-600 text-white'
+                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
             }`}
           >
-            검
+            검 {swordCount}
           </button>
         </div>
-        <select
-          value={rarityFilter}
-          onChange={(e) => setRarityFilter(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg text-xs font-bold bg-slate-700 border-none cursor-pointer hover:bg-slate-600"
-        >
-          <option value="all">모든 등급</option>
-          <option value="common">⚪ 일반</option>
-          <option value="uncommon">🟢 고급</option>
-          <option value="rare">🔵 희귀</option>
-          <option value="epic">🟣 영웅</option>
-          <option value="legendary">🟠 전설</option>
-          <option value="mythic">🔴 신화</option>
-        </select>
       </div>
 
       {/* 아이템 목록 */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <h3 className="text-sm font-black text-purple-300 mb-3">
-          📦 발견한 아이템 ({filteredItems.length})
-        </h3>
-        <div className="grid grid-cols-3 gap-2">
-          {filteredItems.map(item => (
-            <ItemCard key={item.id} item={item} size="small" showRarity={false} />
-          ))}
-        </div>
-        {filteredItems.length === 0 && (
-          <div className="text-center text-slate-500 py-8">
-            <div className="text-4xl mb-2">🔍</div>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {filteredItems.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2">
+            {filteredItems.map(item => (
+              <ItemCard key={item.id} item={item} size="small" showRarity={false} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-slate-600 py-12">
+            <div className="text-4xl mb-2">📭</div>
             <p className="text-xs">아이템이 없습니다</p>
           </div>
         )}
-        <p className="text-xs text-slate-500 mt-4 text-center">
-          💡 드래그해서 왼쪽으로!
+      </div>
+
+      {/* 힌트 */}
+      <div className="px-4 py-3 border-t border-slate-700 bg-slate-800/50">
+        <p className="text-[10px] text-slate-500 text-center leading-relaxed">
+          💡 드래그해서 왼쪽으로!<br />
+          아이템끼리 겹치면 조합됩니다
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Item } from '../types';
-import { getRarityColor, getRarityGlow, getRarityText } from '../utils/combineItems';
+import { getRarityColor, getRarityGlow } from '../utils/combineItems';
 
 interface ItemCardProps {
   item: Item;
@@ -15,17 +15,26 @@ const ItemCard: React.FC<ItemCardProps> = ({
   onDragStart,
   onClick,
   size = 'medium',
-  showRarity = true,
 }) => {
   const sizeClasses = {
-    small: 'w-16 h-20 text-2xl',
-    medium: 'w-20 h-24 text-3xl',
-    large: 'w-24 h-28 text-4xl',
+    small: 'w-16 h-20 text-xl',
+    medium: 'w-20 h-24 text-2xl',
+    large: 'w-24 h-28 text-3xl',
   };
 
   const handleDragStart = (e: React.DragEvent) => {
+    // 🔥 드래그 이미지를 투명하게 만들어서 잔상 제거
+    const dragImage = document.createElement('div');
+    dragImage.style.opacity = '0';
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-9999px';
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    setTimeout(() => document.body.removeChild(dragImage), 0);
+
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('item', JSON.stringify(item));
+
     if (onDragStart) {
       onDragStart(item);
     }
@@ -42,23 +51,18 @@ const ItemCard: React.FC<ItemCardProps> = ({
         ${getRarityGlow(item.rarity)}
         flex flex-col items-center justify-center
         rounded-lg border-2 cursor-grab active:cursor-grabbing
-        transition-all duration-200 hover:scale-110 hover:z-10
-        drag-none select-none
+        transition-all duration-150 hover:scale-105
+        select-none
         relative
       `}
       title={item.description || item.name}
     >
-      <div className="text-center mb-1">{item.emoji}</div>
-      <div className="text-xs font-bold text-white text-center px-1 leading-tight">
+      <div className="text-center mb-0.5">{item.emoji}</div>
+      <div className="text-[10px] font-bold text-white text-center px-1 leading-tight line-clamp-2">
         {item.name}
       </div>
-      {showRarity && (
-        <div className="absolute -top-2 -right-2 bg-slate-900 text-xs px-1.5 py-0.5 rounded-full border border-slate-700 text-slate-300">
-          {getRarityText(item.rarity)}
-        </div>
-      )}
       {item.type === 'sword' && (
-        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-xs px-2 py-0.5 rounded-full text-black font-bold">
+        <div className="absolute -bottom-1 bg-yellow-500 text-[9px] px-1 py-0.5 rounded-full text-black font-bold">
           ⚔️
         </div>
       )}
